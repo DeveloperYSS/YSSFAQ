@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YSS FAQ Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      background-color: #b50000;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      color: white;
+    }
+
+    .header img {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    .chat-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 95%;
+    }
+
+    .chat-box {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      text-align: right;
+      color: #333;
+    }
+
+    .message.bot {
+      text-align: left;
+      color: #b50000;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      color: #888;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 10px;
+      width: 100%;
+      background-color: #b50000;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #990000;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .chat-container {
+        padding: 15px;
+      }
+
+      .chat-box {
+        max-height: 300px;
+        font-size: 15px;
+      }
+
+      input[type="text"], button {
+        font-size: 15px;
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .chat-container {
+        padding: 10px;
+      }
+
+      .chat-box {
+        max-height: 250px;
+        font-size: 14px;
+      }
+
+      .header h2 {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="https://www.yss.co.th/_nuxt/img/yss-logo.676331b.png" alt="YSS Logo">
+    <h2>YSS HR FAQ Chat</h2>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-box" id="chatBox">
+      <div class="message bot">สวัสดีค่ะ 👋 ยินดีตอบคำถามเกี่ยวกับ HR เช่น ลาพักร้อน สวัสดิการ ฯลฯ</div>
+    </div>
+    <input type="text" id="userInput" placeholder="พิมพ์คำถามของคุณ... เช่น ลาพักร้อนได้กี่วัน" onkeypress="handleKey(event)" />
+    <button onclick="sendMessage()">ถาม</button>
+  </div>
+
+  <script>
+    function getTime() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chatBox");
+      const question = input.value.trim();
+      if (!question) return;
+
+      chatBox.innerHTML += `<div class="message user">${question}<div class="timestamp">${getTime()}</div></div>`;
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbya8YuC_ApzFg58nez18ip1_WSfx9gyliBL34L9-3dag0Y_HcEbRSZjjpCzPywLdkl4/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+        const answer = (data.answer || '🤖 ขอโทษค่ะ ไม่พบคำตอบในระบบ ลองสอบถามใหม่อีกครั้งนะคะ').replace(/\n/g, '<br>');
+
+        chatBox.innerHTML += `<div class="message bot">${answer}<div class="timestamp">${getTime()}</div></div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (err) {
+        chatBox.innerHTML += `<div class="message bot">⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ<div class="timestamp">${getTime()}</div></div>`;
+      }
+    }
+  </script>
+</body>
+</html>
